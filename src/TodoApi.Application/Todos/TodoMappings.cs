@@ -14,5 +14,6 @@ public static class TodoMappings
         item.DueDate,
         item.CreatedAt,
         item.UpdatedAt,
-        item.CompletedAt);
+        item.CompletedAt,
+        item.Tags);
 }

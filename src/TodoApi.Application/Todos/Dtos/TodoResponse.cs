@@ -11,4 +11,5 @@ public sealed record TodoResponse(
     DateOnly? DueDate,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    DateTimeOffset? CompletedAt);
+    DateTimeOffset? CompletedAt,
+    IReadOnlyList<string> Tags);

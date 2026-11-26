@@ -115,14 +115,16 @@ Desvios: `Tags` é propriedade `IReadOnlyList<string>` com `private set` (não c
 
 **Done when**:
 
-- [ ] Teste unitário em `TodoServiceTagsTests`: `GetByIdAsync` devolve as tags da entidade em ordem
-- [ ] Gate check passes: `dotnet build; dotnet test tests/TodoApi.UnitTests`
-- [ ] Test count: nenhum teste removido
+- [x] Teste unitário em `TodoServiceTagsTests`: `GetByIdAsync` devolve as tags da entidade em ordem
+- [x] Gate check passes: `dotnet build; dotnet test tests/TodoApi.UnitTests`
+- [x] Test count: nenhum teste removido
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(application): expõe tags na TodoResponse`
+
+**Status**: ✅ Done - 43 unitários, 17 integração.
 
 ---
 
