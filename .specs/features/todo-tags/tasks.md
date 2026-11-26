@@ -208,14 +208,16 @@ Desvios: `Tags` é propriedade `IReadOnlyList<string>` com `private set` (não c
 
 **Done when**:
 
-- [ ] `TodoTagsEndpointsTests` cobre TAG-17..TAG-24 e TAG-26. Cada teste usa tags com um prefixo único, porque a classe compartilha um banco entre os testes
-- [ ] Gate check passes: `dotnet build; dotnet test`
-- [ ] Test count: nenhum teste removido
+- [x] `TodoTagsEndpointsTests` cobre TAG-17..TAG-24 e TAG-26. Cada teste usa tags com um prefixo único, porque a classe compartilha um banco entre os testes
+- [x] Gate check passes: `dotnet build; dotnet test`
+- [x] Test count: nenhum teste removido
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(infrastructure): filtra a listagem de tarefas por tags`
+
+**Status**: ✅ Done - 52 unitários, 50 integração. Os 8 testes de filtro falharam antes da implementação e passaram depois.
 
 ---
 

@@ -269,6 +269,153 @@ public sealed class TodoTagsEndpointsTests(TodoApiFactory factory) : IClassFixtu
         Assert.Equal(["casa", "urgente"], (await GetAsync(created.Id)).Tags);
     }
 
+    // TAG-17
+    [Fact]
+    public async Task List_FilterByOneTag_ReturnsOnlyTagged()
+    {
+        var u = Uid();
+        var casa = $"casa{u}";
+        var a = await CreateAsync($"A {u}", [casa]);
+        var b = await CreateAsync($"B {u}", [casa, $"urgente{u}"]);
+        await CreateAsync($"C {u}", [$"trabalho{u}"]);
+        await CreateAsync($"D {u}", []);
+
+        var result = await ListAsync($"?tags={casa}");
+
+        Assert.Equal(2, result.TotalCount);
+        Assert.Equal([b.Id, a.Id], result.Items.Select(t => t.Id));
+    }
+
+    // TAG-18
+    [Fact]
+    public async Task List_FilterByTwoTags_RequiresAll()
+    {
+        var u = Uid();
+        var casa = $"casa{u}";
+        var urgente = $"urgente{u}";
+        await CreateAsync($"A {u}", [casa]);
+        var both = await CreateAsync($"B {u}", [casa, urgente]);
+        await CreateAsync($"C {u}", [urgente]);
+
+        var result = await ListAsync($"?tags={casa}&tags={urgente}");
+
+        Assert.Equal(1, result.TotalCount);
+        Assert.Equal(both.Id, Assert.Single(result.Items).Id);
+    }
+
+    // TAG-19
+    [Fact]
+    public async Task List_FilterNormalizesValue()
+    {
+        var u = Uid();
+        var tagged = await CreateAsync($"A {u}", [$"casa{u}"]);
+        await CreateAsync($"B {u}", [$"outra{u}"]);
+
+        var result = await ListAsync($"?tags=%20CASA{u.ToUpperInvariant()}%20");
+
+        Assert.Equal(1, result.TotalCount);
+        Assert.Equal(tagged.Id, Assert.Single(result.Items).Id);
+    }
+
+    // TAG-20
+    [Fact]
+    public async Task List_FilterByTagsCombinesWithOtherFilters()
+    {
+        var u = Uid();
+        var tag = $"casa{u}";
+        var match = await CreateAsync($"Alvo-{u}", [tag], TodoPriority.High);
+        var completed = await CreateAsync($"Alvo-{u}", [tag], TodoPriority.High);
+        await _client.PatchAsync($"{BaseUrl}/{completed.Id}/complete", null);
+        await CreateAsync($"Alvo-{u}", [tag], TodoPriority.Low);
+        await CreateAsync($"Alvo-{u}", [], TodoPriority.High);
+        await CreateAsync($"Outro-{u}", [tag], TodoPriority.High);
+
+        var result = await ListAsync($"?tags={tag}&isCompleted=false&priority=High&search=Alvo-{u}");
+
+        Assert.Equal(1, result.TotalCount);
+        Assert.Equal(match.Id, Assert.Single(result.Items).Id);
+    }
+
+    // TAG-21
+    [Fact]
+    public async Task List_FilterByTags_PaginatesFilteredResults()
+    {
+        var u = Uid();
+        var tag = $"casa{u}";
+        var first = await CreateAsync($"A {u}", [tag]);
+        await CreateAsync($"B {u}", []);
+        var second = await CreateAsync($"C {u}", [tag]);
+        await CreateAsync($"D {u}", []);
+        var third = await CreateAsync($"E {u}", [tag]);
+
+        var page1 = await ListAsync($"?tags={tag}&pageSize=2&page=1");
+        var page2 = await ListAsync($"?tags={tag}&pageSize=2&page=2");
+
+        Assert.Equal(3, page1.TotalCount);
+        Assert.Equal(2, page1.TotalPages);
+        Assert.Equal([third.Id, second.Id], page1.Items.Select(t => t.Id));
+        Assert.Equal(3, page2.TotalCount);
+        Assert.Equal([first.Id], page2.Items.Select(t => t.Id));
+    }
+
+    // TAG-22
+    [Theory]
+    [InlineData("&tags=")]
+    [InlineData("&tags=%20")]
+    public async Task List_WithBlankTagFilter_IgnoresFilter(string tagsQuery)
+    {
+        var u = Uid();
+        await CreateAsync($"A {u}", [$"casa{u}"]);
+        await CreateAsync($"B {u}", []);
+
+        var result = await ListAsync($"?search={u}{tagsQuery}");
+
+        Assert.Equal(2, result.TotalCount);
+    }
+
+    // TAG-23
+    [Fact]
+    public async Task List_FilterByUnknownTag_ReturnsEmpty()
+    {
+        var u = Uid();
+        await CreateAsync($"A {u}", [$"casa{u}"]);
+
+        var response = await _client.GetAsync($"{BaseUrl}?tags=ninguem{u}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = (await response.Content.ReadFromJsonAsync<PagedResult<TodoResponse>>(JsonOptions))!;
+        Assert.Empty(result.Items);
+        Assert.Equal(0, result.TotalCount);
+    }
+
+    // TAG-24
+    [Fact]
+    public async Task List_FilterMatchesWholeTagOnly()
+    {
+        var u = Uid();
+        var exact = await CreateAsync($"A {u}", [$"{u}casa"]);
+        await CreateAsync($"B {u}", [$"{u}casamento"]);
+
+        var result = await ListAsync($"?tags={u}casa");
+
+        Assert.Equal(1, result.TotalCount);
+        Assert.Equal(exact.Id, Assert.Single(result.Items).Id);
+    }
+
+    // TAG-26
+    [Fact]
+    public async Task Delete_RemovesTaggedTodoFromFilter()
+    {
+        var u = Uid();
+        var tag = $"unica{u}";
+        var created = await CreateAsync($"A {u}", [tag]);
+        Assert.Equal(1, (await ListAsync($"?tags={tag}")).TotalCount);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.DeleteAsync($"{BaseUrl}/{created.Id}")).StatusCode);
+
+        Assert.Equal(0, (await ListAsync($"?tags={tag}")).TotalCount);
+    }
+
     private static string Uid() => Guid.NewGuid().ToString("N")[..8];
 
     private static async Task AssertProblemAsync(HttpResponseMessage response, string expectedDetail)

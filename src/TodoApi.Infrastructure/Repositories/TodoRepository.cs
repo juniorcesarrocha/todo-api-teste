@@ -35,6 +35,12 @@ internal sealed class TodoRepository(TodoDbContext dbContext) : ITodoRepository
                 (t.Description != null && EF.Functions.Like(t.Description, pattern, "\\")));
         }
 
+        // Um Where por tag: a tarefa precisa ter todas as tags pedidas, comparadas por inteiro.
+        foreach (var tag in query.Tags ?? [])
+        {
+            todos = todos.Where(t => t.Tags.Contains(tag));
+        }
+
         var totalCount = await todos.CountAsync(cancellationToken);
 
         var items = await todos
