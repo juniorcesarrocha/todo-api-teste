@@ -82,6 +82,21 @@ public sealed class TodoItemTagsTests
         Assert.Equal([tag], item.Tags);
     }
 
+    [Fact]
+    public void Create_WithThirtyLettersOutsideBmp_Accepts()
+    {
+        // 30 caracteres de texto, 60 unidades UTF-16: o limite conta caracteres.
+        var tag = string.Concat(Enumerable.Repeat("\U00020000", 30));
+
+        var item = CreateWithTags(tag);
+
+        Assert.Equal([tag], item.Tags);
+    }
+
+    [Fact]
+    public void Create_WithThirtyOneLettersOutsideBmp_Throws() =>
+        Assert.Throws<DomainException>(() => CreateWithTags(string.Concat(Enumerable.Repeat("\U00020000", 31))));
+
     [Theory]
     [InlineData("a b")]
     [InlineData("#casa")]

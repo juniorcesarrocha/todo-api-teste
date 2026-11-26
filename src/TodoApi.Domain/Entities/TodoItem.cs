@@ -1,4 +1,5 @@
-using System.Text.RegularExpressions;
+using System.Globalization;
+using System.Text;
 using TodoApi.Domain.Enums;
 using TodoApi.Domain.Exceptions;
 
@@ -8,7 +9,7 @@ namespace TodoApi.Domain.Entities;
 /// Tarefa da lista de TODO. O estado só é alterado através dos métodos da entidade,
 /// garantindo que as invariantes sejam sempre respeitadas.
 /// </summary>
-public sealed partial class TodoItem
+public sealed class TodoItem
 {
     public const int TitleMaxLength = 200;
     public const int DescriptionMaxLength = 1000;
@@ -139,13 +140,13 @@ public sealed partial class TodoItem
                 throw new DomainException("A tag não pode ser vazia.");
             }
 
-            var tag = raw.Trim().ToLowerInvariant();
-            if (tag.Length > TagMaxLength)
+            var tag = NormalizeTagText(raw);
+            if (tag.EnumerateRunes().Count() > TagMaxLength)
             {
                 throw new DomainException($"A tag '{tag}' deve ter no máximo {TagMaxLength} caracteres.");
             }
 
-            if (!TagPattern().IsMatch(tag))
+            if (!tag.EnumerateRunes().All(IsAllowedInTag))
             {
                 throw new DomainException($"A tag '{tag}' contém caracteres inválidos. Use letras, dígitos, '-' ou '_'.");
             }
@@ -161,6 +162,19 @@ public sealed partial class TodoItem
         return [.. normalized];
     }
 
-    [GeneratedRegex(@"^[\p{L}\p{Nd}_-]+$")]
-    private static partial Regex TagPattern();
+    /// <summary>
+    /// Forma canônica de uma tag: sem espaços nas pontas, minúscula (cultura invariante) e em NFC.
+    /// Usada também pelo filtro da listagem, para que os dois lados comparem o mesmo texto.
+    /// </summary>
+    public static string NormalizeTagText(string tag) =>
+        tag.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormC);
+
+    // Letras (inclusive fora do BMP), marcas combinantes, dígitos decimais, '-' e '_'.
+    private static bool IsAllowedInTag(Rune rune) =>
+        rune.Value is '-' or '_'
+        || Rune.IsLetter(rune)
+        || Rune.GetUnicodeCategory(rune) is UnicodeCategory.DecimalDigitNumber
+            or UnicodeCategory.NonSpacingMark
+            or UnicodeCategory.SpacingCombiningMark
+            or UnicodeCategory.EnclosingMark;
 }

@@ -1,3 +1,4 @@
+using TodoApi.Domain.Entities;
 using TodoApi.Domain.Enums;
 
 namespace TodoApi.Application.Todos.Dtos;
@@ -30,7 +31,7 @@ public sealed record TodoQuery(
     {
         string[] normalized = [.. (tags ?? [])
             .Where(tag => !string.IsNullOrWhiteSpace(tag))
-            .Select(tag => tag.Trim().ToLowerInvariant())
+            .Select(TodoItem.NormalizeTagText)
             .Distinct(StringComparer.Ordinal)];
 
         return normalized.Length == 0 ? null : normalized;

@@ -141,14 +141,19 @@ public sealed class TodoTagsEndpointsTests(TodoApiFactory factory) : IClassFixtu
         Assert.Equal(["casa", "urgente"], fetched!.Tags);
     }
 
-    // TAG-09
-    [Fact]
-    public async Task Post_WithAccentsDigitsHyphenUnderscore_Accepts()
+    // TAG-09 (e "letras Unicode" das Assumptions): acentos em NFC ou NFD, marcas combinantes e letras fora do BMP.
+    [Theory]
+    [InlineData("reunião-2026_q1", "reunião-2026_q1")]
+    [InlineData("reunião", "reunião")]
+    [InlineData("AÇÃO", "ação")]
+    [InlineData("हिंदी", "हिंदी")]
+    [InlineData("\U00020000", "\U00020000")]
+    public async Task Post_WithAccentsDigitsHyphenUnderscore_Accepts(string tag, string expected)
     {
-        var response = await PostAsync(new CreateTodoRequest("Acentos", null, Tags: ["reunião-2026_q1"]));
+        var response = await PostAsync(new CreateTodoRequest("Acentos", null, Tags: [tag]));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal(["reunião-2026_q1"], (await ReadTodoAsync(response)).Tags);
+        Assert.Equal([expected], (await ReadTodoAsync(response)).Tags);
     }
 
     // TAG-10
@@ -315,6 +320,11 @@ public sealed class TodoTagsEndpointsTests(TodoApiFactory factory) : IClassFixtu
 
         Assert.Equal(1, result.TotalCount);
         Assert.Equal(tagged.Id, Assert.Single(result.Items).Id);
+
+        // Valor em NFD ("a" + til combinante) casa com a tag gravada em NFC.
+        var accented = await CreateAsync($"C {u}", [$"reunião{u}"]);
+        var nfd = await ListAsync($"?tags={Uri.EscapeDataString($"reunião{u}")}");
+        Assert.Equal(accented.Id, Assert.Single(nfd.Items).Id);
     }
 
     // TAG-20
