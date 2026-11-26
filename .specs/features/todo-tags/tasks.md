@@ -230,13 +230,15 @@ Desvios: `Tags` é propriedade `IReadOnlyList<string>` com `private set` (não c
 
 **Done when**:
 
-- [ ] Três requisições novas, no mesmo estilo das atuais
-- [ ] Gate check passes: `dotnet build; dotnet test`
+- [x] Três requisições novas, no mesmo estilo das atuais
+- [x] Gate check passes: `dotnet build; dotnet test`
 
 **Tests**: none
 **Gate**: build
 
 **Commit**: `docs(api): adiciona exemplos de tags ao TodoApi.Api.http`
+
+**Status**: ✅ Done - build verde, 52 unitários, 50 integração.
 
 ---
 

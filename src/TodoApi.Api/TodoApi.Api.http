@@ -7,6 +7,9 @@ GET {{baseUrl}}/health
 ### Listar tarefas (com filtros e paginação)
 GET {{baseUrl}}/api/v1/todos?isCompleted=false&priority=High&search=relatório&page=1&pageSize=20
 
+### Listar tarefas que têm todas as tags pedidas
+GET {{baseUrl}}/api/v1/todos?tags=casa&tags=urgente
+
 ### Contar tarefas concluídas
 GET {{baseUrl}}/api/v1/todos/completed/count
 
@@ -22,6 +25,16 @@ Content-Type: application/json
   "description": "Relatório mensal de vendas",
   "priority": "High",
   "dueDate": "2026-12-01"
+}
+
+### Criar tarefa com tags (normalizadas para minúsculas, sem repetição)
+POST {{baseUrl}}/api/v1/todos
+Content-Type: application/json
+
+{
+  "title": "Comprar tinta",
+  "priority": "Low",
+  "tags": ["Casa", "urgente"]
 }
 
 ### Criar tarefa inválida (400)
@@ -44,6 +57,16 @@ Content-Type: application/json
   "description": null,
   "priority": "Medium",
   "dueDate": null
+}
+
+### Atualizar tarefa trocando as tags (sem "tags", as atuais são mantidas)
+PUT {{baseUrl}}/api/v1/todos/{{todoId}}
+Content-Type: application/json
+
+{
+  "title": "Escrever relatório (revisado)",
+  "priority": "Medium",
+  "tags": ["trabalho"]
 }
 
 ### Concluir tarefa
