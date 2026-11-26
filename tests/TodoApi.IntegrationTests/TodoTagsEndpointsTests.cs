@@ -416,6 +416,27 @@ public sealed class TodoTagsEndpointsTests(TodoApiFactory factory) : IClassFixtu
         Assert.Equal(0, (await ListAsync($"?tags={tag}")).TotalCount);
     }
 
+    // TAG-28
+    [Fact]
+    public async Task List_FilterWithMoreThanTenDistinctTags_ReturnsEmpty()
+    {
+        var u = Uid();
+        string[] tags = [.. Enumerable.Range(1, 11).Select(i => $"t{i}{u}")];
+        await CreateAsync($"Dez {u}", [.. tags.Take(10)]);
+        var many = string.Join("&", Enumerable.Range(1, 500).Select(i => $"tags=x{i}{u}"));
+
+        var exactlyTen = await ListAsync($"?{string.Join("&", tags.Take(10).Select(t => $"tags={t}"))}");
+        var eleven = await ListAsync($"?{string.Join("&", tags.Select(t => $"tags={t}"))}");
+        var response = await _client.GetAsync($"{BaseUrl}?{many}");
+
+        Assert.Equal(1, exactlyTen.TotalCount);
+        Assert.Equal(0, eleven.TotalCount);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = (await response.Content.ReadFromJsonAsync<PagedResult<TodoResponse>>(JsonOptions))!;
+        Assert.Empty(result.Items);
+        Assert.Equal(0, result.TotalCount);
+    }
+
     private static string Uid() => Guid.NewGuid().ToString("N")[..8];
 
     private static async Task AssertProblemAsync(HttpResponseMessage response, string expectedDetail)

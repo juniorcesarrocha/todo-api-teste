@@ -31,6 +31,18 @@ public sealed class TodoServiceTagsTests
     }
 
     [Fact]
+    public async Task ListAsync_WithMoreThanTenDistinctTags_ReturnsEmptyWithoutQuerying()
+    {
+        string[] tags = [.. Enumerable.Range(1, 11).Select(i => $"t{i}")];
+        _repository.Add(TodoItem.Create("Tarefa", null, TodoPriority.Medium, null, tags.Take(10), _time.Now));
+
+        var result = await _service.ListAsync(new TodoQuery(Tags: tags), Ct);
+
+        Assert.Empty(result.Items);
+        Assert.Equal(0, result.TotalCount);
+    }
+
+    [Fact]
     public async Task CreateAsync_WithTags_ReturnsNormalizedTags()
     {
         var result = await _service.CreateAsync(

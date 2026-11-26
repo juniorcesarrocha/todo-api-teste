@@ -107,6 +107,7 @@ Hoje uma tarefa só pode ser agrupada por status (`isCompleted`) e prioridade. N
 6. WHEN todos os valores de `tags` estão em branco (`?tags=` ou `?tags=%20`) THEN o sistema SHALL listar como se o filtro não existisse. <!-- TAG-22 -->
 7. WHEN nenhuma tarefa tem a tag pedida THEN o sistema SHALL responder 200 com `items: []` e `totalCount: 0`. <!-- TAG-23 -->
 8. The system SHALL casar a tag do filtro só com a tag inteira: `?tags=casa` não devolve uma tarefa que só tem `casamento`. <!-- TAG-24 -->
+9. WHEN o filtro `tags` traz mais de 10 tags distintas depois da normalização THEN o sistema SHALL responder 200 com `items: []` e `totalCount: 0`, sem consultar o banco. <!-- TAG-28 -->
 
 **Independent Test**: Criar três tarefas (`[casa]`, `[casa, urgente]`, `[trabalho]`); `?tags=casa` devolve duas, `?tags=casa&tags=urgente` devolve uma.
 
@@ -151,8 +152,9 @@ Hoje uma tarefa só pode ser agrupada por status (`isCompleted`) e prioridade. N
 | TAG-25 | Edge Cases | Tasks | In Tasks |
 | TAG-26 | Edge Cases | Tasks | In Tasks |
 | TAG-27 | Edge Cases | Tasks | In Tasks |
+| TAG-28 | P1: Filtrar por tags | Tasks | In Tasks |
 
-**Coverage:** 27 total, 27 mapped to tasks (T1-T6) e checks C1-C27, 0 unmapped
+**Coverage:** 28 total, 28 mapped to tasks (T1-T6, TAG-28 na correção do finding F1) e checks C1-C28, 0 unmapped
 
 ---
 

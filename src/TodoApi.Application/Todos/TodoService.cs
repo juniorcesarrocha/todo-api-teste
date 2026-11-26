@@ -14,6 +14,14 @@ public sealed partial class TodoService(
     public async Task<PagedResult<TodoResponse>> ListAsync(TodoQuery query, CancellationToken cancellationToken)
     {
         var normalized = query.Normalize();
+
+        // Nenhuma tarefa tem mais de MaxTags tags, então o filtro E não casa com nada.
+        // Responder direto também evita montar uma consulta gigante a partir da query string.
+        if (normalized.Tags?.Length > TodoItem.MaxTags)
+        {
+            return new PagedResult<TodoResponse>([], normalized.Page, normalized.PageSize, 0);
+        }
+
         var (items, totalCount) = await repository.ListAsync(normalized, cancellationToken);
 
         return new PagedResult<TodoResponse>(

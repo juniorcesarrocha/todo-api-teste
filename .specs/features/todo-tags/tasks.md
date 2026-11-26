@@ -325,6 +325,9 @@ Proof: run integration | Aprovado TodoApi.IntegrationTests.TodoTagsEndpointsTest
 **C27** - `complete` e `reopen` mantêm as tags (TAG-27, Edge Case 3)
 Proof: run integration | Aprovado TodoApi.IntegrationTests.TodoTagsEndpointsTests.CompleteAndReopen_KeepTags
 
+**C28** - Filtro com 11 tags distintas, ou com 500 valores, responde 200 com `items: []` e `totalCount: 0`; com 10 continua casando (TAG-28, AC 9 de "Filtrar por tags"; finding F1)
+Proof: run integration | Aprovado TodoApi.IntegrationTests.TodoTagsEndpointsTests.List_FilterWithMoreThanTenDistinctTags_ReturnsEmpty
+
 ---
 
 ## Handoff
