@@ -336,7 +336,7 @@ Proof: run integration | Aprovado TodoApi.IntegrationTests.TodoTagsEndpointsTest
 ## Handoff
 
 **Settled mid-build:** none
-**Dispatched:** Verifier (validate.md) em HEAD 14050fb
+**Dispatched:** Verifier (validate.md) em HEAD 14050fb - returned (FAIL, 7 findings). Round 2: proofs em ef743fe, 29/29 verdes; F5 aberto com o usuário.
 **Walked:** none
 
 ---
