@@ -161,14 +161,16 @@ Desvios: `Tags` é propriedade `IReadOnlyList<string>` com `private set` (não c
 
 **Done when**:
 
-- [ ] `TodoQueryTagsTests`: `" CASA "` → `["casa"]`; `["", " "]` → `null`; `["a", "A"]` → `["a"]`
-- [ ] Gate check passes: `dotnet build; dotnet test tests/TodoApi.UnitTests`
-- [ ] Test count: nenhum teste removido
+- [x] `TodoQueryTagsTests`: `" CASA "` → `["casa"]`; `["", " "]` → `null`; `["a", "A"]` → `["a"]`
+- [x] Gate check passes: `dotnet build; dotnet test tests/TodoApi.UnitTests`
+- [x] Test count: nenhum teste removido
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(application): adiciona filtro de tags ao TodoQuery`
+
+**Status**: ✅ Done - 52 unitários, 17 integração.
 
 ---
 

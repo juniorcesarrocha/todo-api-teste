@@ -19,6 +19,7 @@ internal sealed class InMemoryTodoRepository : ITodoRepository
             .Where(t => query.IsCompleted is null || t.IsCompleted == query.IsCompleted)
             .Where(t => query.Priority is null || t.Priority == query.Priority)
             .Where(t => query.Search is null || t.Title.Contains(query.Search, StringComparison.OrdinalIgnoreCase))
+            .Where(t => query.Tags is null || query.Tags.All(t.Tags.Contains))
             .OrderByDescending(t => t.CreatedAt)
             .ToList();
 
