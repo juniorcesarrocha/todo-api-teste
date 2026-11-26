@@ -65,25 +65,27 @@ public sealed class TodoTagsEndpointsTests(TodoApiFactory factory) : IClassFixtu
         using var client = isolatedFactory.CreateClient();
         var title = $"Ordem {Uid()}";
 
+        // Entradas em que a ordem ordinal e a ordem cultural divergem (acento, '-', '_', dígitos).
         var createResponse = await client.PostAsJsonAsync(
-            BaseUrl, new CreateTodoRequest(title, null, Tags: ["zeta", "alfa", "meio"]), JsonOptions);
+            BaseUrl, new CreateTodoRequest(title, null, Tags: ["é", "f", "_a", "a", "-z", "1"]), JsonOptions);
         var created = await ReadTodoAsync(createResponse);
-        Assert.Equal(["alfa", "meio", "zeta"], created.Tags);
+        Assert.Equal(["-z", "1", "_a", "a", "f", "é"], created.Tags);
 
         var updateResponse = await client.PutAsJsonAsync(
             $"{BaseUrl}/{created.Id}",
-            new UpdateTodoRequest(title, null, TodoPriority.Medium, null, ["zz", "b", "a"]),
+            new UpdateTodoRequest(title, null, TodoPriority.Medium, null, ["zz", "b", "a", "É", "_b", "2"]),
             JsonOptions);
-        Assert.Equal(["a", "b", "zz"], (await ReadTodoAsync(updateResponse)).Tags);
+        string[] expected = ["2", "_b", "a", "b", "zz", "é"];
+        Assert.Equal(expected, (await ReadTodoAsync(updateResponse)).Tags);
 
         var fetched = await client.GetFromJsonAsync<TodoResponse>($"{BaseUrl}/{created.Id}", JsonOptions);
-        Assert.Equal(["a", "b", "zz"], fetched!.Tags);
+        Assert.Equal(expected, fetched!.Tags);
 
         var list = await client.GetFromJsonAsync<PagedResult<TodoResponse>>($"{BaseUrl}?search={title}", JsonOptions);
-        Assert.Equal(["a", "b", "zz"], Assert.Single(list!.Items).Tags);
+        Assert.Equal(expected, Assert.Single(list!.Items).Tags);
 
         var oldest = await client.GetFromJsonAsync<TodoResponse>($"{BaseUrl}/pending/oldest", JsonOptions);
-        Assert.Equal(["a", "b", "zz"], oldest!.Tags);
+        Assert.Equal(expected, oldest!.Tags);
     }
 
     // TAG-05
@@ -177,7 +179,7 @@ public sealed class TodoTagsEndpointsTests(TodoApiFactory factory) : IClassFixtu
     {
         var tag = new string('a', 31);
 
-        var response = await PostAsync(new CreateTodoRequest("Longa", null, Tags: [tag]));
+        var response = await PostAsync(new CreateTodoRequest("Longa", null, Tags: [$"  {tag}  "]));
 
         await AssertProblemAsync(response, $"A tag '{tag}' deve ter no máximo 30 caracteres.");
     }
@@ -188,7 +190,8 @@ public sealed class TodoTagsEndpointsTests(TodoApiFactory factory) : IClassFixtu
     {
         var tag = new string('b', 30);
 
-        var response = await PostAsync(new CreateTodoRequest("Limite", null, Tags: [tag]));
+        // Os espaços em volta não contam: o limite vale depois do trim.
+        var response = await PostAsync(new CreateTodoRequest("Limite", null, Tags: [$"  {tag}  "]));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.Equal([tag], (await ReadTodoAsync(response)).Tags);
@@ -226,7 +229,7 @@ public sealed class TodoTagsEndpointsTests(TodoApiFactory factory) : IClassFixtu
         var response = await PostAsync(new CreateTodoRequest("Dez distintas", null, Tags: tags));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal(10, (await ReadTodoAsync(response)).Tags.Count);
+        Assert.Equal(["t1", "t10", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9"], (await ReadTodoAsync(response)).Tags);
     }
 
     // TAG-16

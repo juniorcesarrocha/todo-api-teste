@@ -38,9 +38,9 @@ public sealed class TodoItemTagsTests
     [Fact]
     public void Create_SortsTagsInOrdinalOrder()
     {
-        var item = CreateWithTags("zeta", "alfa", "meio");
+        var item = CreateWithTags("é", "f", "_a", "a", "-z", "1");
 
-        Assert.Equal(["alfa", "meio", "zeta"], item.Tags);
+        Assert.Equal(["-z", "1", "_a", "a", "f", "é"], item.Tags);
     }
 
     [Fact]
