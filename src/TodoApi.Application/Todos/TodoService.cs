@@ -45,6 +45,7 @@ public sealed partial class TodoService(
             request.Description,
             request.Priority,
             request.DueDate,
+            null,
             timeProvider.GetUtcNow());
 
         repository.Add(item);
@@ -62,7 +63,7 @@ public sealed partial class TodoService(
             return null;
         }
 
-        item.Update(request.Title, request.Description, request.Priority, request.DueDate, timeProvider.GetUtcNow());
+        item.Update(request.Title, request.Description, request.Priority, request.DueDate, null, timeProvider.GetUtcNow());
         await repository.SaveChangesAsync(cancellationToken);
 
         return item.ToResponse();

@@ -11,7 +11,7 @@ public sealed class TodoItemTests
     [Fact]
     public void Create_WithValidData_SetsPropertiesAndTrimsText()
     {
-        var item = TodoItem.Create("  Comprar pão  ", "  ", TodoPriority.High, new DateOnly(2026, 12, 1), Now);
+        var item = TodoItem.Create("  Comprar pão  ", "  ", TodoPriority.High, new DateOnly(2026, 12, 1), null, Now);
 
         Assert.NotEqual(Guid.Empty, item.Id);
         Assert.Equal("Comprar pão", item.Title);
@@ -26,21 +26,21 @@ public sealed class TodoItemTests
     [InlineData("")]
     [InlineData("   ")]
     public void Create_WithBlankTitle_Throws(string title) =>
-        Assert.Throws<DomainException>(() => TodoItem.Create(title, null, TodoPriority.Low, null, Now));
+        Assert.Throws<DomainException>(() => TodoItem.Create(title, null, TodoPriority.Low, null, null, Now));
 
     [Fact]
     public void Create_WithTitleTooLong_Throws() =>
         Assert.Throws<DomainException>(() =>
-            TodoItem.Create(new string('a', TodoItem.TitleMaxLength + 1), null, TodoPriority.Low, null, Now));
+            TodoItem.Create(new string('a', TodoItem.TitleMaxLength + 1), null, TodoPriority.Low, null, null, Now));
 
     [Fact]
     public void Create_WithUndefinedPriority_Throws() =>
-        Assert.Throws<DomainException>(() => TodoItem.Create("Tarefa", null, (TodoPriority)99, null, Now));
+        Assert.Throws<DomainException>(() => TodoItem.Create("Tarefa", null, (TodoPriority)99, null, null, Now));
 
     [Fact]
     public void Complete_ThenReopen_UpdatesState()
     {
-        var item = TodoItem.Create("Tarefa", null, TodoPriority.Medium, null, Now);
+        var item = TodoItem.Create("Tarefa", null, TodoPriority.Medium, null, null, Now);
         var later = Now.AddHours(1);
 
         item.Complete(later);
@@ -58,7 +58,7 @@ public sealed class TodoItemTests
     [Fact]
     public void Complete_WhenAlreadyCompleted_KeepsOriginalCompletionDate()
     {
-        var item = TodoItem.Create("Tarefa", null, TodoPriority.Medium, null, Now);
+        var item = TodoItem.Create("Tarefa", null, TodoPriority.Medium, null, null, Now);
         item.Complete(Now.AddHours(1));
 
         item.Complete(Now.AddHours(5));

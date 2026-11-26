@@ -24,6 +24,9 @@ internal sealed class TodoItemConfiguration : IEntityTypeConfiguration<TodoItem>
             .HasConversion<string>()
             .HasMaxLength(20);
 
+        // Temporário: as tags ainda não têm coluna. O mapeamento e a migration entram na T5 da feature de tags.
+        builder.Ignore(t => t.Tags);
+
         builder.HasIndex(t => t.IsCompleted);
         builder.HasIndex(t => t.CreatedAt);
     }

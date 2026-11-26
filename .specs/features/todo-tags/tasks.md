@@ -90,15 +90,18 @@ T5 → T6 → T7
 
 **Done when**:
 
-- [ ] `TodoItemTagsTests` cobre: normaliza caixa e espaços; `null` no Create vira vazia; remove repetidas; ordena; `null` no Update mantém; acentos/dígitos/`-`/`_` aceitos; vazia/espaços/`null` → mensagem de vazia; 31 caracteres → mensagem de tamanho; 30 aceito; espaço interno, `#` e `.` → mensagem de caracteres; 11 distintas → mensagem de limite; 11 entradas com 10 distintas aceitas; Update rejeitado mantém título e tags; Complete/Reopen mantêm tags
-- [ ] Os testes atuais de `TodoItemTests` e `TodoServiceTests` passam sem mudança de asserção
-- [ ] Gate check passes: `dotnet build; dotnet test tests/TodoApi.UnitTests`
-- [ ] Test count: os 22 testes unitários atuais + os novos, nenhum removido
+- [x] `TodoItemTagsTests` cobre: normaliza caixa e espaços; `null` no Create vira vazia; remove repetidas; ordena; `null` no Update mantém; acentos/dígitos/`-`/`_` aceitos; vazia/espaços/`null` → mensagem de vazia; 31 caracteres → mensagem de tamanho; 30 aceito; espaço interno, `#` e `.` → mensagem de caracteres; 11 distintas → mensagem de limite; 11 entradas com 10 distintas aceitas; Update rejeitado mantém título e tags; Complete/Reopen mantêm tags
+- [x] Os testes atuais de `TodoItemTests` e `TodoServiceTests` passam sem mudança de asserção
+- [x] Gate check passes: `dotnet build; dotnet test tests/TodoApi.UnitTests`
+- [x] Test count: os 22 testes unitários atuais + os novos, nenhum removido
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(domain): adiciona tags normalizadas ao TodoItem`
+
+**Status**: ✅ Done - 42 unitários (22 + 20 novos), 17 integração.
+Desvios: `Tags` é propriedade `IReadOnlyList<string>` com `private set` (não campo `List` privado), para a T5 consultar `t.Tags.Contains`. `TodoItemConfiguration` ganhou `builder.Ignore(t => t.Tags)` temporário: sem ele o EF acusa `PendingModelChangesWarning` e os 17 testes de integração quebram até a T5.
 
 ---
 
