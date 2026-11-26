@@ -328,6 +328,9 @@ Proof: run integration | Aprovado TodoApi.IntegrationTests.TodoTagsEndpointsTest
 **C28** - Filtro com 11 tags distintas, ou com 500 valores, responde 200 com `items: []` e `totalCount: 0`; com 10 continua casando (TAG-28, AC 9 de "Filtrar por tags"; finding F1)
 Proof: run integration | Aprovado TodoApi.IntegrationTests.TodoTagsEndpointsTests.List_FilterWithMoreThanTenDistinctTags_ReturnsEmpty
 
+**C29** - Uma tarefa gravada antes de `AddTodoTags` é lida com `tags: []` depois da migration, e o filtro por tag não a devolve (Assumptions "Tarefas que já existem no banco" e Success Criteria 3; finding F7)
+Proof: run integration | Aprovado TodoApi.IntegrationTests.TodoTagsEndpointsTests.Migration_ExistingTodos_GetEmptyTags
+
 ---
 
 ## Handoff

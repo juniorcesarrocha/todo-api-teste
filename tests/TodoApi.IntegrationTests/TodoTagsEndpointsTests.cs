@@ -3,9 +3,14 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using TodoApi.Application.Common;
 using TodoApi.Application.Todos.Dtos;
 using TodoApi.Domain.Enums;
+using TodoApi.Infrastructure.Persistence;
 
 namespace TodoApi.IntegrationTests;
 
@@ -427,6 +432,32 @@ public sealed class TodoTagsEndpointsTests(TodoApiFactory factory) : IClassFixtu
         Assert.Equal(HttpStatusCode.NoContent, (await _client.DeleteAsync($"{BaseUrl}/{created.Id}")).StatusCode);
 
         Assert.Equal(0, (await ListAsync($"?tags={tag}")).TotalCount);
+    }
+
+    // Assumptions: tarefas que já existem ficam com tags [] depois da migration (finding F7).
+    [Fact]
+    public async Task Migration_ExistingTodos_GetEmptyTags()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        var options = new DbContextOptionsBuilder<TodoDbContext>().UseSqlite(connection).Options;
+        var id = Guid.NewGuid();
+
+        await using (var context = new TodoDbContext(options))
+        {
+            var migrator = context.GetService<IMigrator>();
+            await migrator.MigrateAsync("20261102201317_InitialCreate");
+            await context.Database.ExecuteSqlAsync(
+                $"INSERT INTO Todos (Id, Title, IsCompleted, Priority, CreatedAt, UpdatedAt) VALUES ({id}, 'Antiga', 0, 'Medium', 0, 0)");
+
+            await migrator.MigrateAsync();
+        }
+
+        await using var migrated = new TodoDbContext(options);
+        var existing = await migrated.Todos.AsNoTracking().SingleAsync(t => t.Id == id);
+        Assert.Equal("Antiga", existing.Title);
+        Assert.Empty(existing.Tags);
+        Assert.Equal(0, await migrated.Todos.CountAsync(t => t.Tags.Contains("antiga")));
     }
 
     // TAG-28
