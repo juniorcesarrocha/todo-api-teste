@@ -138,14 +138,16 @@ Desvios: `Tags` é propriedade `IReadOnlyList<string>` com `private set` (não c
 
 **Done when**:
 
-- [ ] `TodoServiceTagsTests`: Create com tags devolve normalizadas; Create sem tags devolve `[]`; Update com lista substitui; Update com `[]` limpa; Update com `null` mantém
-- [ ] Gate check passes: `dotnet build; dotnet test tests/TodoApi.UnitTests`
-- [ ] Test count: nenhum teste removido
+- [x] `TodoServiceTagsTests`: Create com tags devolve normalizadas; Create sem tags devolve `[]`; Update com lista substitui; Update com `[]` limpa; Update com `null` mantém
+- [x] Gate check passes: `dotnet build; dotnet test tests/TodoApi.UnitTests`
+- [x] Test count: nenhum teste removido
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(application): aceita tags na criação e edição de tarefas`
+
+**Status**: ✅ Done - 48 unitários, 17 integração.
 
 ---
 

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using TodoApi.Application.Todos;
+using TodoApi.Application.Todos.Dtos;
 using TodoApi.Domain.Entities;
 using TodoApi.Domain.Enums;
 using TodoApi.UnitTests.Fakes;
@@ -27,5 +28,62 @@ public sealed class TodoServiceTagsTests
 
         Assert.NotNull(result);
         Assert.Equal(["alfa", "zeta"], result.Tags);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithTags_ReturnsNormalizedTags()
+    {
+        var result = await _service.CreateAsync(
+            new CreateTodoRequest("Tarefa", null, Tags: ["Casa", " urgente "]), Ct);
+
+        Assert.Equal(["casa", "urgente"], result.Tags);
+        Assert.Equal(["casa", "urgente"], _repository.Items.Single().Tags);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithoutTags_ReturnsEmptyTags()
+    {
+        var result = await _service.CreateAsync(new CreateTodoRequest("Tarefa", null), Ct);
+
+        Assert.Empty(result.Tags);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithTags_ReplacesTags()
+    {
+        var created = await _service.CreateAsync(
+            new CreateTodoRequest("Tarefa", null, Tags: ["casa", "urgente"]), Ct);
+
+        var updated = await _service.UpdateAsync(
+            created.Id, new UpdateTodoRequest("Tarefa", null, TodoPriority.Medium, null, ["trabalho"]), Ct);
+
+        Assert.NotNull(updated);
+        Assert.Equal(["trabalho"], updated.Tags);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithEmptyTags_ClearsTags()
+    {
+        var created = await _service.CreateAsync(
+            new CreateTodoRequest("Tarefa", null, Tags: ["casa"]), Ct);
+
+        var updated = await _service.UpdateAsync(
+            created.Id, new UpdateTodoRequest("Tarefa", null, TodoPriority.Medium, null, []), Ct);
+
+        Assert.NotNull(updated);
+        Assert.Empty(updated.Tags);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithNullTags_KeepsTags()
+    {
+        var created = await _service.CreateAsync(
+            new CreateTodoRequest("Tarefa", null, Tags: ["casa", "urgente"]), Ct);
+
+        var updated = await _service.UpdateAsync(
+            created.Id, new UpdateTodoRequest("Outro", null, TodoPriority.Medium, null), Ct);
+
+        Assert.NotNull(updated);
+        Assert.Equal(["casa", "urgente"], updated.Tags);
     }
 }
