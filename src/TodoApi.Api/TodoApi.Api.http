@@ -1,0 +1,56 @@
+@baseUrl = http://localhost:5164
+@todoId = 00000000-0000-0000-0000-000000000000
+
+### Health check
+GET {{baseUrl}}/health
+
+### Listar tarefas (com filtros e paginação)
+GET {{baseUrl}}/api/v1/todos?isCompleted=false&priority=High&search=relatório&page=1&pageSize=20
+
+### Contar tarefas concluídas
+GET {{baseUrl}}/api/v1/todos/completed/count
+
+### Obter a tarefa pendente mais antiga (404 se não houver)
+GET {{baseUrl}}/api/v1/todos/pending/oldest
+
+### Criar tarefa
+POST {{baseUrl}}/api/v1/todos
+Content-Type: application/json
+
+{
+  "title": "Escrever relatório",
+  "description": "Relatório mensal de vendas",
+  "priority": "High",
+  "dueDate": "2026-12-01"
+}
+
+### Criar tarefa inválida (400)
+POST {{baseUrl}}/api/v1/todos
+Content-Type: application/json
+
+{
+  "title": ""
+}
+
+### Obter tarefa por id
+GET {{baseUrl}}/api/v1/todos/{{todoId}}
+
+### Atualizar tarefa
+PUT {{baseUrl}}/api/v1/todos/{{todoId}}
+Content-Type: application/json
+
+{
+  "title": "Escrever relatório (revisado)",
+  "description": null,
+  "priority": "Medium",
+  "dueDate": null
+}
+
+### Concluir tarefa
+PATCH {{baseUrl}}/api/v1/todos/{{todoId}}/complete
+
+### Reabrir tarefa
+PATCH {{baseUrl}}/api/v1/todos/{{todoId}}/reopen
+
+### Remover tarefa
+DELETE {{baseUrl}}/api/v1/todos/{{todoId}}
