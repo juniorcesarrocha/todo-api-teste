@@ -184,15 +184,17 @@ Desvios: `Tags` é propriedade `IReadOnlyList<string>` com `private set` (não c
 
 **Done when**:
 
-- [ ] A migration adiciona só a coluna `Tags` com `defaultValue: "[]"`, e o `Down` a remove
-- [ ] `TodoTagsEndpointsTests` (novo) cobre, pela API, os critérios TAG-01..TAG-16, TAG-25 e TAG-27 com os nomes listados em `## Checks`
-- [ ] Gate check passes: `dotnet build; dotnet test`
-- [ ] Test count: todos os testes atuais + os novos, nenhum removido
+- [x] A migration adiciona só a coluna `Tags` com `defaultValue: "[]"`, e o `Down` a remove
+- [x] `TodoTagsEndpointsTests` (novo) cobre, pela API, os critérios TAG-01..TAG-16, TAG-25 e TAG-27 com os nomes listados em `## Checks`
+- [x] Gate check passes: `dotnet build; dotnet test`
+- [x] Test count: todos os testes atuais + os novos, nenhum removido
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(infrastructure): persiste tags das tarefas`
+
+**Status**: ✅ Done - 52 unitários, 40 integração (17 + 23 novos). A migration usa `defaultValueSql: "'[]'"` (vem de `HasDefaultValueSql` na configuração), com o mesmo efeito de `defaultValue: "[]"`. O `Ignore` temporário da T1 saiu.
 
 ---
 
