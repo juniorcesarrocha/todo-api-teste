@@ -1,3 +1,4 @@
+using TodoApi.Domain.Entities;
 using TodoApi.Domain.Enums;
 
 namespace TodoApi.Application.Todos.Dtos;
@@ -11,7 +12,8 @@ public sealed record TodoQuery(
     TodoPriority? Priority = null,
     string? Search = null,
     int Page = 1,
-    int PageSize = TodoQuery.DefaultPageSize)
+    int PageSize = TodoQuery.DefaultPageSize,
+    string[]? Tags = null)
 {
     public const int DefaultPageSize = 20;
     public const int MaxPageSize = 100;
@@ -20,6 +22,18 @@ public sealed record TodoQuery(
     {
         Page = Math.Max(1, Page),
         PageSize = Math.Clamp(PageSize, 1, MaxPageSize),
-        Search = string.IsNullOrWhiteSpace(Search) ? null : Search.Trim()
+        Search = string.IsNullOrWhiteSpace(Search) ? null : Search.Trim(),
+        Tags = NormalizeTags(Tags)
     };
+
+    // Mesma normalização das tags gravadas; valores em branco são ignorados.
+    private static string[]? NormalizeTags(string[]? tags)
+    {
+        string[] normalized = [.. (tags ?? [])
+            .Where(tag => !string.IsNullOrWhiteSpace(tag))
+            .Select(TodoItem.NormalizeTagText)
+            .Distinct(StringComparer.Ordinal)];
+
+        return normalized.Length == 0 ? null : normalized;
+    }
 }

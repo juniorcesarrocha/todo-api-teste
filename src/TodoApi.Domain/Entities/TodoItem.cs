@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using TodoApi.Domain.Enums;
 using TodoApi.Domain.Exceptions;
 
@@ -11,6 +13,8 @@ public sealed class TodoItem
 {
     public const int TitleMaxLength = 200;
     public const int DescriptionMaxLength = 1000;
+    public const int TagMaxLength = 30;
+    public const int MaxTags = 10;
 
     public Guid Id { get; private set; }
     public string Title { get; private set; } = string.Empty;
@@ -22,6 +26,9 @@ public sealed class TodoItem
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; }
 
+    /// <summary>Tags normalizadas (minúsculas, sem repetição), em ordem alfabética ordinal.</summary>
+    public IReadOnlyList<string> Tags { get; private set; } = [];
+
     // Construtor exigido pelo EF Core.
     private TodoItem()
     {
@@ -32,6 +39,7 @@ public sealed class TodoItem
         string? description,
         TodoPriority priority,
         DateOnly? dueDate,
+        IEnumerable<string?>? tags,
         DateTimeOffset now)
     {
         var item = new TodoItem
@@ -40,17 +48,21 @@ public sealed class TodoItem
             CreatedAt = now
         };
 
-        item.ApplyChanges(title, description, priority, dueDate, now);
+        item.ApplyChanges(title, description, priority, dueDate, tags ?? [], now);
         return item;
     }
 
+    /// <summary>
+    /// Atualiza os dados da tarefa. Com <paramref name="tags"/> nulo, as tags atuais são mantidas.
+    /// </summary>
     public void Update(
         string title,
         string? description,
         TodoPriority priority,
         DateOnly? dueDate,
+        IEnumerable<string?>? tags,
         DateTimeOffset now) =>
-        ApplyChanges(title, description, priority, dueDate, now);
+        ApplyChanges(title, description, priority, dueDate, tags, now);
 
     public void Complete(DateTimeOffset now)
     {
@@ -81,6 +93,7 @@ public sealed class TodoItem
         string? description,
         TodoPriority priority,
         DateOnly? dueDate,
+        IEnumerable<string?>? tags,
         DateTimeOffset now)
     {
         if (string.IsNullOrWhiteSpace(title))
@@ -105,10 +118,63 @@ public sealed class TodoItem
             throw new DomainException($"Prioridade inválida: {priority}.");
         }
 
+        // Valida tudo antes de atribuir: uma alteração rejeitada não deixa a entidade pela metade.
+        var normalizedTags = tags is null ? Tags : NormalizeTags(tags);
+
         Title = title;
         Description = description;
         Priority = priority;
         DueDate = dueDate;
+        Tags = normalizedTags;
         UpdatedAt = now;
     }
+
+    private static List<string> NormalizeTags(IEnumerable<string?> tags)
+    {
+        var normalized = new SortedSet<string>(StringComparer.Ordinal);
+
+        foreach (var raw in tags)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                throw new DomainException("A tag não pode ser vazia.");
+            }
+
+            var tag = NormalizeTagText(raw);
+            if (tag.EnumerateRunes().Count() > TagMaxLength)
+            {
+                throw new DomainException($"A tag '{tag}' deve ter no máximo {TagMaxLength} caracteres.");
+            }
+
+            if (!tag.EnumerateRunes().All(IsAllowedInTag))
+            {
+                throw new DomainException($"A tag '{tag}' contém caracteres inválidos. Use letras, dígitos, '-' ou '_'.");
+            }
+
+            normalized.Add(tag);
+        }
+
+        if (normalized.Count > MaxTags)
+        {
+            throw new DomainException($"A tarefa pode ter no máximo {MaxTags} tags.");
+        }
+
+        return [.. normalized];
+    }
+
+    /// <summary>
+    /// Forma canônica de uma tag: sem espaços nas pontas, minúscula (cultura invariante) e em NFC.
+    /// Usada também pelo filtro da listagem, para que os dois lados comparem o mesmo texto.
+    /// </summary>
+    public static string NormalizeTagText(string tag) =>
+        tag.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormC);
+
+    // Letras (inclusive fora do BMP), marcas combinantes, dígitos decimais, '-' e '_'.
+    private static bool IsAllowedInTag(Rune rune) =>
+        rune.Value is '-' or '_'
+        || Rune.IsLetter(rune)
+        || Rune.GetUnicodeCategory(rune) is UnicodeCategory.DecimalDigitNumber
+            or UnicodeCategory.NonSpacingMark
+            or UnicodeCategory.SpacingCombiningMark
+            or UnicodeCategory.EnclosingMark;
 }

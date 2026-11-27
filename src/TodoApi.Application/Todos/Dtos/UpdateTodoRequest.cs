@@ -8,4 +8,5 @@ public sealed record UpdateTodoRequest(
     [property: Required, StringLength(TodoItem.TitleMaxLength)] string Title,
     [property: StringLength(TodoItem.DescriptionMaxLength)] string? Description,
     TodoPriority Priority,
-    DateOnly? DueDate);
+    DateOnly? DueDate,
+    IReadOnlyList<string?>? Tags = null);

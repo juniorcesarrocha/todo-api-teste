@@ -8,4 +8,5 @@ public sealed record CreateTodoRequest(
     [property: Required, StringLength(TodoItem.TitleMaxLength)] string Title,
     [property: StringLength(TodoItem.DescriptionMaxLength)] string? Description,
     TodoPriority Priority = TodoPriority.Medium,
-    DateOnly? DueDate = null);
+    DateOnly? DueDate = null,
+    IReadOnlyList<string?>? Tags = null);

@@ -24,6 +24,11 @@ internal sealed class TodoItemConfiguration : IEntityTypeConfiguration<TodoItem>
             .HasConversion<string>()
             .HasMaxLength(20);
 
+        // Tags ficam numa coluna JSON; o SQLite filtra com json_each. Linhas antigas recebem '[]'.
+        builder.PrimitiveCollection(t => t.Tags)
+            .IsRequired()
+            .HasDefaultValueSql("'[]'");
+
         builder.HasIndex(t => t.IsCompleted);
         builder.HasIndex(t => t.CreatedAt);
     }

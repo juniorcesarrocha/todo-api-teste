@@ -14,6 +14,14 @@ public sealed partial class TodoService(
     public async Task<PagedResult<TodoResponse>> ListAsync(TodoQuery query, CancellationToken cancellationToken)
     {
         var normalized = query.Normalize();
+
+        // Nenhuma tarefa tem mais de MaxTags tags, então o filtro E não casa com nada.
+        // Responder direto também evita montar uma consulta gigante a partir da query string.
+        if (normalized.Tags?.Length > TodoItem.MaxTags)
+        {
+            return new PagedResult<TodoResponse>([], normalized.Page, normalized.PageSize, 0);
+        }
+
         var (items, totalCount) = await repository.ListAsync(normalized, cancellationToken);
 
         return new PagedResult<TodoResponse>(
@@ -45,6 +53,7 @@ public sealed partial class TodoService(
             request.Description,
             request.Priority,
             request.DueDate,
+            request.Tags,
             timeProvider.GetUtcNow());
 
         repository.Add(item);
@@ -62,7 +71,7 @@ public sealed partial class TodoService(
             return null;
         }
 
-        item.Update(request.Title, request.Description, request.Priority, request.DueDate, timeProvider.GetUtcNow());
+        item.Update(request.Title, request.Description, request.Priority, request.DueDate, request.Tags, timeProvider.GetUtcNow());
         await repository.SaveChangesAsync(cancellationToken);
 
         return item.ToResponse();
